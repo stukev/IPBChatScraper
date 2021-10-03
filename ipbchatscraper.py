@@ -3,9 +3,13 @@ import time
 
 import requests
 
+# url of the forum chatbox. usually this should be https://www.forum.com/index.php
 url = ''
+# 32 char alphanumeric cookie session string
 cookie = ''
+# 32 char alphanumeric CSRF string (doesn't change between XHR requests)
 csrf = ''
+# the chatroom to use in case there are multiple ones
 room = '1'
 
 # TODO: get values via argparse instead of hardcode
