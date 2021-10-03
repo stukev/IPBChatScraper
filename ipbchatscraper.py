@@ -56,11 +56,27 @@ def get_message(url, cookie, csrf, lastid='99999999999999', room='1'):
         'loadMoreMode': '1',
         'isReconnect': '0'
     }
+
     r = requests.post(url, headers=headers, params=params, data=data)
+    # sometimes api bugs out and gives empty reply
+    if r.text is None:
+        # in this case we retry up to 3 times.
+        for i in range(3):
+            # sleep a bit to be nice to the server
+            time.sleep(2)
+            # try again
+            r = requests.post(url, headers=headers, params=params, data=data)
+            # did it work now?
+            if r.text is not None:
+                # request worked this time, break the loop
+                break
+            else:
+                if i >= 3:
+                    # Time to give up
+                    exit("Exiting: Received empty reply 3 times in a row. Something isn't right here.")
     # check if there are any errors
     check_errors(r.text, lastid)
     return r.text
-
 
 def save_message(message, file='chatlog.txt'):
     with open(file, "a") as output:
