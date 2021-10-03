@@ -14,7 +14,6 @@ room = '1'
 
 # TODO: get values via argparse instead of hardcode
 # TODO: add -continue flag to give lastid from aborted backup process
-# TODO: Bug: Sometimes script fails in line 75 as the reply is empty, needs to be handled and the request retried
 # TODO: Bug: Sometimes the API claims that our CSRF token is invalid when it's not. Retrying seems to fix this 100% of the time.
 
 lastid = '99999999999999'  # will default to the latest id
