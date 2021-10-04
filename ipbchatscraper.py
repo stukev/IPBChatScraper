@@ -15,6 +15,7 @@ room = '1'
 # TODO: get values via argparse instead of hardcode
 # TODO: add -continue flag to give lastid from aborted backup process
 # TODO: Bug: Sometimes the API claims that our CSRF token is invalid when it's not. Retrying seems to fix this 100% of the time.
+# TODO: Create -keepmetadata to not trim off 'useless' meta data from api messages
 
 lastid = '99999999999999'  # will default to the latest id
 
@@ -78,6 +79,15 @@ def get_message(url, cookie, csrf, lastid='99999999999999', room='1'):
     return r.text
 
 def save_message(message, file='chatlog.txt'):
+    # remove some unneeded meta data
+    del message['chatterKey']
+    del message['sys']
+    del message['inDay']
+    del message['donation']
+    del message['canEdit']
+    del message['canDelete']
+    del message['canReport']
+    # save message
     with open(file, "a") as output:
         output.write(json.dumps(message) + '\n')
 
