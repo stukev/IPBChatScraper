@@ -103,7 +103,7 @@ def get_message(url, cookie, csrf, lastid, room):
             # try again
             r = requests.post(args.url, headers=headers, params=params, data=data)
             # did it work now?
-            if r.text is not None:
+            if check_errors(r.text, lastid) is not None:
                 # request worked this time, break the loop
                 break
             else:
