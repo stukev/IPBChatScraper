@@ -1,21 +1,115 @@
 # IPBChatScraper
-Scraping tool to backup Invision Power Board "Chatbox" messages. Useful for OSINT, quicker data lookup with grep or simply just to have a backup in case forum admins purge the chat history.
 
-Tested with [Chatbox+](https://invisioncommunity.com/files/file/7465-chatbox-free/). Should also work with [Chatbox FREE](https://invisioncommunity.com/files/file/7465-chatbox-free/) but it's currently untested.
+Scraping tool to backup Invision Power Board (IPB) "Chatbox" messages. Useful for OSINT, full archive persistence, quick grep lookups, or safeguarding against admin purges.
+
+Tested with [Chatbox+](https://invisioncommunity.com/files/file/7465-chatbox-free/). Likely works with [Chatbox FREE](https://invisioncommunity.com/files/file/7465-chatbox-free/) too.
+
+---
+
+## Features
+
+- Automatically extracts cookies from your browser (Chrome or Firefox)
+- Automatically retrieves CSRF token from the site
+- Archives the entire chatbox in **newest-to-oldest** order
+- Detects and skips already archived messages
+
+---
 
 ## Usage
 
-1. Navigate to the forum chat in your browser, ensure that you're logged in.
-2. Open the developer console (F12) and search the sourcecode for "csrfKey". Note down the value. It will look similar to this: bf531df7ef66daef50441d6a08a042fe
-3. Open the browser settings and navigate to cookies. Input the forum url and open its cookies.
-4. You are looking for "ips4_IPSSessionFront". Note down the value. It will look similar to this: 1f85799402412bf1b30a69b704df46de
-5. Lastly note down the url of the chat location. Usually this will be something like https://www.forum.com/index.php
-6. Run the scraper with "python3 ipbchatscraper.py -url=https://www.forum.com/index.php -csrf=yourvalue -session=yourvalue"
+### Option 1: Use Your Browser Session (Recommended)
 
-### Optional Parameters
-* **-room=number** Defines the chat room. Default is 1 and will be used when parameter isn't provided.
-* **-file=filename** Output filename. Default is chatlog.txt.
-* **-continue=number** Continue an aborted backup process from given message id. Will backup the entire chatbox if not given.
+1. Make sure you're logged into the forum in Firefox or Chrome.
+2. Run the scraper:
 
-### Known bugs
-Sometimes the Chat API will claim that the CSRF token is wrong (even though it's not). Resuming the script with the -continue=number option fixes this problem. If you're not sure what the last number was, simply open your output file and check the last added entry. Then add that id to the parameter. I might fix this with an automated retry.
+```bash
+python ipbchatscraper.py \
+  --url https://www.forum.com/index.php \
+  --use-browser \
+  --browser firefox \
+  --room 1 \
+  --output full_shoutbox_backup.jsonl
+```
+
+> 💡 For Chrome use: `--browser chrome`
+
+This will:
+- Grab your active session cookie from the browser
+- Extract the CSRF key automatically
+- Back up the full chatbox (or just the new messages, if you’ve already backed it up before)
+
+---
+
+### Option 2: Manual Mode (Advanced)
+
+If you can't use browser mode, provide session + CSRF manually:
+
+```bash
+python ipbchatscraper.py \
+  --url https://www.forum.com/index.php \
+  --csrf your_csrf_token \
+  --cookie your_ips4_IPSSessionFront_cookie \
+  --room 1 \
+  --output full_shoutbox_backup.jsonl
+```
+
+To find the CSRF and cookie:
+- **CSRF token**: Use F12 → Inspect → Search page source for `csrfKey`
+- **Session cookie**: Look for `ips4_IPSSessionFront` under your browser’s cookies for the domain
+
+---
+
+## Output Format
+
+- All messages are stored as newline-delimited JSON (JSONL)
+- File is sorted **newest first** to reflect the Chat
+- Once the archive is complete, the final line is:
+  ```
+  "__full_backup_complete__"
+  ```
+
+---
+
+## Optional Parameters
+
+| Flag            | Description                                         |
+|-----------------|-----------------------------------------------------|
+| `--room`        | Chat room ID (default: 1)                           |
+| `--output`      | Output filename (default: `chatlog.jsonl`)         |
+| `--use-browser` | Enables cookie + CSRF auto-extraction from browser |
+| `--browser`     | Which browser to pull cookies from (`firefox`/`chrome`) |
+
+---
+
+## Known Behavior
+
+- Some forums intermittently return “invalid CSRF” errors — the script automatically retries these.
+- Messages are written to file immediately to avoid data loss on interruption.
+- If the forum has purged very old messages, your backup will reflect only what the server returns.
+
+---
+
+## Installation
+
+### 1. Clone this repo and set up a virtual environment:
+
+```bash
+git clone https://github.com/stukev/IPBChatScraper.git
+cd IPBChatScraper
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 2. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Run the script:
+
+```bash
+python ipbchatscraper.py --help
+```
+
+> ✅ Supported Python versions: **3.7 and up** (tested with 3.10+)
